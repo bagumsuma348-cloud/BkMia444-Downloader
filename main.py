@@ -39,7 +39,7 @@ def webhook():
 def send_welcome(message):
     welcome_text = (
         "👋 <b>Welcome to BK444_Official Video Downloader Bot!</b>\n\n"
-        "🚀 Send me any Instagram Reel, Facebook Video ya koi bhi supported link.\n"
+        "🚀 Send me any Instagram Reel, Facebook Video, YouTube, TikTok ya koi bhi supported link.\n"
         "Main turant download kar ke bhej dunga.\n\n"
         "💡 High Quality • yt-dlp Powered\n"
         "Made with ❤️ for @Bk_Mia444_BOT"
@@ -62,19 +62,36 @@ def handle_video_link(message):
     status_msg = bot.reply_to(message, "🔍 Analyzing link...")
 
     try:
+        # Enhanced yt-dlp options for better YouTube + Instagram support
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',  # Better quality selector
             'outtmpl': 'video_%(id)s.%(ext)s',
             'merge_output_format': 'mp4',
             'noplaylist': True,
             'quiet': True,
             'no_warnings': True,
+            'prefer_free_formats': True,
+            'postprocessors': [{
+                'key': 'FFmpegVideoConvertor',
+                'preferedformat': 'mp4',
+            }],
+            # Additional options for Instagram & YouTube
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+            },
+            'extractor_args': {
+                'youtube': {'player_client': ['ios', 'web']},  # Helps with YouTube
+                'instagram': {'player_client': ['ios']},
+            },
+            'retries': 3,
+            'fragment_retries': 3,
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             filename = ydl.prepare_filename(info)
 
+            # Show progress
             bot.edit_message_text(
                 chat_id=status_msg.chat.id,
                 message_id=status_msg.message_id,
@@ -108,11 +125,12 @@ def handle_video_link(message):
 
     except Exception as e:
         logger.error(str(e))
+        error_msg = str(e)[:150]
         try:
             bot.edit_message_text(
                 chat_id=status_msg.chat.id,
                 message_id=status_msg.message_id,
-                text=f"❌ Error: {str(e)[:150]}"
+                text=f"❌ Error: {error_msg}\n\nTry again or check link."
             )
         except:
             pass
