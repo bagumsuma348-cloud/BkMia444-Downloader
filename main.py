@@ -93,7 +93,7 @@ def handle_video_link(message):
             bot.send_video(
                 message.chat.id,
                 f,
-                caption="✅ Downloaded Successfully! \n\n🔥 Powered by: @BLACK_KNOWLEDGE_190",
+                caption="✅ Downloaded Successfully! \n\n🔥 Powered by: @Bk666767786",
                 supports_streaming=True
             )
 
